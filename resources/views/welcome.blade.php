@@ -96,11 +96,11 @@
     </style>
 </head>
 <body>
-{{-- <form action="save-calendar-events" method="POST">
-    @csrf
-    <input type="text" placeholder="title" name="title">
-    <button type="submit">Shcduel</button>
-</form> --}}
+{{--<form action="save-calendar-events" method="POST">--}}
+{{--    @csrf--}}
+{{--    <input type="text" placeholder="title" name="title">--}}
+{{--    <button type="submit">Shcduel</button>--}}
+{{--</form>--}}
 <a href="schedule-events">Make meeting</a>
 <br>
 <div id='calendar'>

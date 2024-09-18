@@ -3,43 +3,39 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\HandleCalendlyIntegration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class CalendlyIntegrationController extends Controller
 {
-    private $accessToken;
-    public function __construct()
+    private $handleCalendlyIntegration;
+    public function __construct(HandleCalendlyIntegration $handleCalendlyIntegration)
     {
-        $this->accessToken = config('services.calendly.token');
+        $this->handleCalendlyIntegration = $handleCalendlyIntegration;
     }
     public function getUser()
     {
-        $response = Http::withToken($this->accessToken)
-            ->get('https://api.calendly.com/users/me');
+       $response = $this->handleCalendlyIntegration->getUser();
         if ($response->successful()) {
-            $data = $response->json();
-            $uri = $data['resource']['uri'];
-            $current_organization = $data['resource']['current_organization'];
-            return ['uri'=>$uri, 'current_organization'=>$current_organization];
+            return [
+                'uri'=>$response->json()['resource']['uri'],
+                'current_organization'=>$response->json()['resource']['current_organization']
+            ];
         }
         return $response->status();
     }
     public function getEventTypes()
     {
-        $organization = $this->getUser()['current_organization'];
-        $response = Http::withToken($this->accessToken)->get('https://api.calendly.com/event_types?organization='.$organization);
+        $response = $this->handleCalendlyIntegration->getEventTypes();
         if ($response->successful()) {
-            $data = $response->json();
-            $uri = $data['collection']['0']['uri'];
-            return $uri;
+            return $response->json()['collection']['0']['uri'];
         }
         return $response->status();
     }
     public function getScheduledEvents()
     {
-        $organization = $this->getUser()['current_organization'];
-        $response = Http::withToken($this->accessToken)->get('https://api.calendly.com/scheduled_events?organization='.$organization);
+        $response = $this->handleCalendlyIntegration->getScheduledEvents();
         if ($response->successful()) {
             return $response->json();
         }
@@ -47,15 +43,9 @@ class CalendlyIntegrationController extends Controller
     }
     public function scheduleEvent()
     {
-        $body =[
-            'max_event_count'=>1,
-            "owner"=> $this->getEventTypes(),
-            "owner_type"=> "EventType"
-        ];
-        $response = Http::withToken($this->accessToken)->post('https://api.calendly.com/scheduling_links',$body);
+        $response = $this->handleCalendlyIntegration->scheduleEvent();
         if ($response->successful()) {
-            $data = $response->json();
-            $url = $data['resource']['booking_url'];
+            $url = $response->json()['resource']['booking_url'];
             return view('calender');
         }
         return $response->status();
