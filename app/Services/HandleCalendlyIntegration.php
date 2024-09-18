@@ -13,22 +13,26 @@ class HandleCalendlyIntegration
         $this->accessToken = config('services.calendly.token');
         $this->uri = 'https://api.calendly.com';
     }
+    private function callEndPoint($uri, $method, $data = null)
+    {
+        $calling = Http::withToken($this->accessToken)->$method($this->uri.$uri,$data);
+        return $calling;
+    }
     public function getUser()
     {
-        $response = Http::withToken($this->accessToken)
-            ->get($this->uri.'/users/me');
+        $response = $this->callEndPoint('/users/me','get');
         return $response;
     }
     public function getEventTypes()
     {
         $organization = $this->getUser()->json()['resource']['current_organization'];
-        $response = Http::withToken($this->accessToken)->get($this->uri.'/event_types?organization='.$organization);
+        $response = $this->callEndPoint('/event_types?organization='.$organization,'get');
         return $response;
     }
     public function getScheduledEvents()
     {
         $organization = $this->getUser()->json()['resource']['current_organization'];
-        $response = Http::withToken($this->accessToken)->get($this->uri.'/scheduled_events?organization='.$organization);
+        $response = $this->callEndPoint('/scheduled_events?organization='.$organization,'get');
         return $response;
     }
     public function scheduleEvent()
@@ -38,7 +42,7 @@ class HandleCalendlyIntegration
             "owner"=> $this->getEventTypes()->json()['collection']['0']['uri'],
             "owner_type"=> "EventType"
         ];
-        $response = Http::withToken($this->accessToken)->post($this->uri.'/scheduling_links',$body);
+        $response = $this->callEndPoint('/scheduling_links','post',$body);
         return $response;
     }
 }
